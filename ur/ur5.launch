@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find rovi_industrial)/std.launch">
+    <arg name="robot" value="ur" />
+  </include>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <include file="$(find ur_description)/launch/ur5_upload.launch"/>
+  <node pkg="rovi_industrial" type="rclient_ur.py" name="" output="screen" respawn="true" respawn_delay="5">
+    <param name="/config/rsocket/robot_recipe" value="$(find rovi_industrial)/ur/default.xml" type="str"/>
+  </node>
+</launch>

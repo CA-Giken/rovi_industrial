@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<rtde_config>
+  <recipe key="state">
+    <field name="robot_mode" type="INT32"/>
+    <field name="runtime_state" type="UINT32"/>
+    <field name="actual_q" type="VECTOR6D"/>
+    <field name="actual_TCP_pose" type="VECTOR6D"/>
+    <field name="payload_inertia" type="VECTOR6D"/>
+    <field name="tcp_offset" type="VECTOR6D"/>
+  </recipe>
+  <recipe key="input">
+    <field name="input_bit_register_64" type="BOOL"/>
+    <field name="input_bit_register_65" type="BOOL"/>
+    <field name="input_int_register_24" type="INT32"/>
+  </recipe>
+</rtde_config>
