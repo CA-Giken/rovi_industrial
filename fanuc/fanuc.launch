@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="rovi_utils" type="tf_euler.py" name="" />
+  <node pkg="rovi_utils" type="tf_lookup.py" name="" />
+  <param name="/config/rsocket/protocol" type="str" value="fanuc" />
+  <node pkg="rovi_industrial" type="r_socket.js" name="" output="screen" />
+<!--  <node pkg="rovi_industrial" type="r_client.js" name="" output="screen" /> -->
+</launch>
+

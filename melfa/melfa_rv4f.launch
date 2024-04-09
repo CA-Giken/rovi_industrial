@@ -1,0 +1,24 @@
+<launch>
+  <arg name="loopback" default="false"/>
+  <arg name="realtime" default="false"/>
+  <arg name="period" default="0.1"/>
+
+<!-- Start MELFA driver
+  <node name="melfa_driver" pkg="melfa_driver" type="melfa_driver_node" output="screen">
+    <param name="realtime" value="$(arg realtime)"/>
+    <param name="period" value="$(arg period)"/>
+  </node>
+
+  <node if="$(arg loopback)" name="melfa_loopback" pkg="melfa_driver" type="melfa_loopback_node">
+    <param name="realtime" value="$(arg realtime)"/>
+    <param name="period" value="$(arg period)"/>
+  </node>
+-->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rovi_industrial)/melfa/urdf/rv4fl.urdf.xacro" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <node pkg="rovi_utils" type="tf_euler.py" name="" output="screen" />
+  <node pkg="rovi_utils" type="tf_lookup.py" name="" output="screen" />
+  <param name="/config/rsocket/protocol" type="str" value="melfa" />
+  <node pkg="rovi_industrial" type="r_socket.js" name="" output="screen" />
+</launch>

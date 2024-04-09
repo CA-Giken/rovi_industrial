@@ -1,0 +1,14 @@
+<launch>
+  <node pkg="rovi_utils" type="tf_euler.py" name="" output="screen" />
+  <node pkg="rovi_utils" type="tf_lookup.py" name="" output="screen" />
+
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rovi_industrial)/melfa/urdf/rv4fl.urdf.xacro" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <param name="/config/rsocket/protocol" type="str" value="melfa" />
+  <node pkg="rovi_industrial" type="r_socket_log.js" name="" output="screen" />
+  <node pkg="rovi_industrial" type="r_socket.js" name="" output="screen" />
+
+  <node pkg="rovi_industrial" type="rdump_melfa.js" name="" />
+  <node pkg="rovi_industrial" type="ycam3.py" name="" />
+</launch>

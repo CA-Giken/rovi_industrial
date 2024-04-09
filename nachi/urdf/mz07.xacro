@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<robot name="mz07" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find nachi)/mz07/urdf/mz07_macro.xacro" />
+  <xacro:nachi_mz07 prefix="" />
+
+  <link name="world" />
+  <joint name="joint_w" type="fixed">
+    <parent link="world" />
+	<child link="base_link" />
+  </joint>
+
+</robot>

@@ -1,0 +1,13 @@
+config:
+  rsocket:
+    port: 8888
+    delay: 100
+    socket_timeout: 13
+    capt_timeout: 10
+    solve_timeout: 10
+    recipe_timeout: 10
+#    protocol: protocol of the robot controller
+#    update_frame_id: the frame r_socket.js will update, the alternative of ROS driver
+#    source_frame_id: the frame where master is placed
+#    target_frame_id: the frame solved
+#    base_frame_id: the frame to see the transform between source->target
