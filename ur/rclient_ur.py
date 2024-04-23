@@ -24,8 +24,8 @@ Config={
     {'param':'/dashboard/ind/diskfree/stat','input':'input_bit_register_66'},
     {'state':'payload_inertia[0]','input':'input_int_register_24','gain':10},
     {'input': 'input_int_register_20', 'publish': '/report', 'key': 'CaptRowNo' },
-    {'input': 'input_int_register_21', 'publish': '/report', 'key': 'CaptRowNo' },
-    {'input': 'input_int_register_22', 'publish': '/report', 'key': 'CaptRowNo' },
+    {'input': 'input_int_register_21', 'publish': '/report', 'key': 'CaptColNo' },
+    {'input': 'input_int_register_22', 'publish': '/report', 'key': 'ReCaptNo' },
   ],
 }
 
@@ -73,12 +73,12 @@ while True:
     if 'param' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
-    elif 'key' in obj and obj["key"] == "CaptRowNo":
+    elif 'publish' in obj:
       if obj["publish"] == '/report':
         if len(pycode)>0: pycode=pycode+'\n'
-        pycode=pycode+lvar+'=pub_report.publish(json.dumps({' + obj["input"] + ": comm.state." + obj['input'] + '}))'
+        pycode=pycode+lvar+'=pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['input'] + '}))'
       else:
-        print("Missing or unacceptable 'publish' key in the CaptRowNo object of Config.copy.")
+        print("Not acceptable 'publish' key in the CaptRowNo object of Config.copy.")
     elif 'state' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
