@@ -11,6 +11,9 @@
   <recipe key="input">
     <field name="input_bit_register_64" type="BOOL"/>
     <field name="input_bit_register_65" type="BOOL"/>
+    <field name="input_int_register_20" type="INT32"/>
+    <field name="input_int_register_21" type="INT32"/>
+    <field name="input_int_register_22" type="INT32"/>
     <field name="input_int_register_24" type="INT32"/>
   </recipe>
 </rtde_config>
