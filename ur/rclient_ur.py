@@ -11,6 +11,7 @@ from rovi_utils import tflib
 from scipy.spatial.transform import Rotation as R
 import time
 import sys
+import json
 
 Config={
   'robot_ip':'127.0.0.1',
@@ -75,8 +76,10 @@ while True:
       pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
     elif 'key' in obj and obj["key"] == "CaptRowNo":
       if obj["publish"] == '/report':
-        if len(pycode)>0: pycode=pycode+'\n'        
-        pycode=pycode+lvar+'=pub_report.publish({'+ obj["input"] + ': comm.state.'+ obj["input"] +'})'
+        if len(pycode)>0: pycode=pycode+'\n'
+        jsonObject = {}
+        jsonObject[obj['input']] = "comm.state." + obj['input']        
+        pycode=pycode+lvar+'=pub_report.publish(' + json.dumps(jsonObject) +')'
       else:
         print("Missing or unacceptable 'publish' key in the CaptRowNo object of Config.copy.")
     elif 'state' in obj:
