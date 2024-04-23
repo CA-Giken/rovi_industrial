@@ -76,7 +76,7 @@ while True:
     elif 'key' in obj and obj["key"] == "CaptRowNo":
       if obj["publish"] == '/report':
         if len(pycode)>0: pycode=pycode+'\n'
-        pycode=pycode+lvar+'=pub_report.publish(json.dumps({' + obj["input"] + ": comm.state." + obj['input'] + '))'
+        pycode=pycode+lvar+'=pub_report.publish(json.dumps({' + obj["input"] + ": comm.state." + obj['input'] + '}))'
       else:
         print("Missing or unacceptable 'publish' key in the CaptRowNo object of Config.copy.")
     elif 'state' in obj:
