@@ -5,7 +5,7 @@ import roslib
 import rospy
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from rovi_industrial import rtde_sock as comm
 from rovi_utils import tflib
 from scipy.spatial.transform import Rotation as R
@@ -23,6 +23,9 @@ Config={
     {'param':'/dashboard/ind/rovi/stat','input':'input_bit_register_65'},
     {'param':'/dashboard/ind/diskfree/stat','input':'input_bit_register_66'},
     {'state':'payload_inertia[0]','input':'input_int_register_24','gain':10},
+    {'input': 'input_int_register_20', 'publish': '/report', 'key': 'CaptRowNo' },
+    {'input': 'input_int_register_21', 'publish': '/report', 'key': 'CaptRowNo' },
+    {'input': 'input_int_register_22', 'publish': '/report', 'key': 'CaptRowNo' },
   ],
 }
 
@@ -36,6 +39,7 @@ except Exception as e:
 pub_js=rospy.Publisher('/joint_states',JointState,queue_size=1)
 pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
+pub_report=rospy.Publisher('/report', String, queue_size=1)
 print("rclient_ur::",Config['robot_ip'])
 
 mTrue=Bool();mTrue.data=True
@@ -69,6 +73,12 @@ while True:
     if 'param' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
+    elif 'key' in obj and obj["key"] == "CaptRowNo":
+      if obj["publish"] == '/report':
+        if len(pycode)>0: pycode=pycode+'\n'        
+        pycode=pycode+lvar+'=pub_report.publish({'+ obj["input"] + ': comm.state.'+ obj["input"] +'})'
+      else:
+        print("Missing or unacceptable 'publish' key in the CaptRowNo object of Config.copy.")
     elif 'state' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
