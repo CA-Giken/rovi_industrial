@@ -42,15 +42,47 @@ pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
 
 # Dynamic Publishers
-class Publishers(dict):
-  def get(self, endpoint):
-    alias = endpoint.replace("/", "_")
-    if alias in self:
-      return self[alias]
-    else:
-      self[alias] = rospy.Publisher(endpoint, String, queue_size=1)
-      return self[alias]
-pubs = Publishers()
+class Publishers():
+  def __init__(self, tick: int):
+    self.publishers = []
+    self.tick = tick
+  def set(self, endpoint, key, value):
+    pub = list.filter(lambda x: x.endpoint == endpoint, self.publishers)
+    if pub == None:
+      pub = self.create_endpoint(endpoint, self.tick)
+    pub.add_payload(key, value)
+  def create_endpoint(self, endpoint, tick):
+    pub = CustomPublisher("endpoint")
+    self.publishers.append(pub)
+    return pub
+  def next_tick(self):
+    for pub in self.publishers:
+      pub.next_tick()
+    
+class CustomPublisher:
+  def __init__(self, endpoint: str, tick: int):
+    self.endpoint = endpoint
+    self.tick = tick
+    self.tick_count = 0
+    self.publisher = rospy.Publisher(endpoint, String, queue_size=1)
+    self.cached_payloads = []
+    self.payload = {}
+  def next_tick(self):
+    self.tick_count = self.tick_count + 1
+    if self.tick_count >= self.tick:
+      self.publisher.publish(self.payload)
+      self.tick_count = 0
+      self.clear_cache()
+    self.clear_payload()
+  def add_payload(self, key, value):
+    self.payload["key"] = value
+  def clear_payload(self):
+    self.cached_payloads.append(self.payload)
+    self.payload = {}
+  def clear_cache(self):
+    self.cached_payloads = []
+    
+pubs = Publishers(10)
 
 print("rclient_ur::",Config['robot_ip'])
 
@@ -82,7 +114,7 @@ while True:
   for obj in Config['copy']:
     if 'publish' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
-      pycode=pycode+'pubs.get("' + obj["publish"] +'").publish(json.dumps({"' + obj["key"] + '": comm.state.' + obj['state'] + '}))'
+      pycode=pycode+'pubs.set("' + obj["publish"] +'",' + obj["key"] + ', comm.state.' + obj['state'] + ')'
       continue
     
     lvar='comm.inregs.'+obj['input']
@@ -93,6 +125,10 @@ while True:
     elif 'state' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
+      
+  if len(pycode)>0: pycode=pycode+'\n'      
+  pycode=pycode+'pubs.next_tick()'
+  
   print('Code generator\n',pycode)
 ###Start Event Loop##############
   try:
