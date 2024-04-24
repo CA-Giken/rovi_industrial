@@ -71,7 +71,7 @@ while True:
     if 'publish' in obj:
       if obj["publish"] == '/report':
         if len(pycode)>0: pycode=pycode+'\n'
-        pycode=pycode+'=pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
+        pycode=pycode+'pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
       else:
         print(f"Not acceptable 'publish' key in the {0} object of Config.copy.".format(obj["key"]))
       continue
