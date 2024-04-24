@@ -11,6 +11,7 @@ from rovi_utils import tflib
 from scipy.spatial.transform import Rotation as R
 import time
 import sys
+import json
 
 Config={
   'robot_ip':'127.0.0.1',
@@ -41,10 +42,10 @@ pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
 
 # Dynamic Publishers
-class Publishers:
+class Publishers(dict):
   def get(self, endpoint):
     alias = endpoint.replace("/", "_")
-    if self[alias]:
+    if alias in self:
       return self[alias]
     else:
       self[alias] = rospy.Publisher(endpoint, String, queue_size=1)
@@ -81,7 +82,7 @@ while True:
   for obj in Config['copy']:
     if 'publish' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
-      pycode=pycode+'pubs.get(' + obj["publish"] +').publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
+      pycode=pycode+'pubs.get("' + obj["publish"] +'").publish(json.dumps({"' + obj["key"] + '": comm.state.' + obj['state'] + '}))'
       continue
     
     lvar='comm.inregs.'+obj['input']
