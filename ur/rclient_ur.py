@@ -19,6 +19,7 @@ Config={
   'robot_recipe':'default.xml',
   'robot_port':30004,
   'tcp0_frame_id':'tool0_controller',
+  'publish_tick': 5,
   'copy':[
     {'param':'/dashboard/ind/rsocket/enable','input':'input_bit_register_64'},
     {'param':'/dashboard/ind/rovi/stat','input':'input_bit_register_65'},
@@ -30,7 +31,7 @@ Config={
   ],
 }
 
-__PUBLISH_TICK__ = 5
+__PUBLISH_TICK__ = Config["publish_tick"]
 
 rospy.init_node('rclient_ur',anonymous=True)
 joints=JointState()
