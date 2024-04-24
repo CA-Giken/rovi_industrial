@@ -75,7 +75,7 @@ class CustomPublisher:
       self.clear_cache()
     self.clear_payload()
   def add_payload(self, key, value):
-    self.payload["key"] = value
+    self.payload[key] = value
   def clear_payload(self):
     self.cached_payloads.append(self.payload)
     self.payload = {}
