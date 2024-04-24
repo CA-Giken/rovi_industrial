@@ -30,6 +30,8 @@ Config={
   ],
 }
 
+__PUBLISH_TICKRATE__ = 10
+
 rospy.init_node('rclient_ur',anonymous=True)
 joints=JointState()
 joints.name=Config['joint_ids']
@@ -42,17 +44,17 @@ pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
 
 # Dynamic Publishers
-class Publishers():
+class Publishers:
   def __init__(self, tick: int):
     self.publishers = []
     self.tick = tick
   def set(self, endpoint, key, value):
-    pub = list.filter(lambda x: x.endpoint == endpoint, self.publishers)
+    pub = next(filter(lambda x: x.endpoint == endpoint, self.publishers), None)
     if pub == None:
       pub = self.create_endpoint(endpoint, self.tick)
     pub.add_payload(key, value)
   def create_endpoint(self, endpoint, tick):
-    pub = CustomPublisher("endpoint")
+    pub = CustomPublisher(endpoint, tick)
     self.publishers.append(pub)
     return pub
   def next_tick(self):
@@ -70,7 +72,7 @@ class CustomPublisher:
   def next_tick(self):
     self.tick_count = self.tick_count + 1
     if self.tick_count >= self.tick:
-      self.publisher.publish(self.payload)
+      self.publisher.publish(json.dumps(self.payload))
       self.tick_count = 0
       self.clear_cache()
     self.clear_payload()
@@ -82,7 +84,7 @@ class CustomPublisher:
   def clear_cache(self):
     self.cached_payloads = []
     
-pubs = Publishers(10)
+pubs = Publishers(__PUBLISH_TICKRATE__)
 
 print("rclient_ur::",Config['robot_ip'])
 
@@ -114,17 +116,17 @@ while True:
   for obj in Config['copy']:
     if 'publish' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
-      pycode=pycode+'pubs.set("' + obj["publish"] +'",' + obj["key"] + ', comm.state.' + obj['state'] + ')'
+      pycode=pycode+'pubs.set("' + obj["publish"] +'","' + obj["key"] + '", comm.state.' + obj['state'] + ')'
       continue
     
-    lvar='comm.inregs.'+obj['input']
-    exec(lvar+'=0')
-    if 'param' in obj:
-      if len(pycode)>0: pycode=pycode+'\n'
-      pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
-    elif 'state' in obj:
-      if len(pycode)>0: pycode=pycode+'\n'
-      pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
+    # lvar='comm.inregs.'+obj['input']
+    # exec(lvar+'=0')
+    # if 'param' in obj:
+    #   if len(pycode)>0: pycode=pycode+'\n'
+    #   pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
+    # elif 'state' in obj:
+    #   if len(pycode)>0: pycode=pycode+'\n'
+    #   pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
       
   if len(pycode)>0: pycode=pycode+'\n'      
   pycode=pycode+'pubs.next_tick()'
