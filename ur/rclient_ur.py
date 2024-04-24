@@ -30,7 +30,7 @@ Config={
   ],
 }
 
-__PUBLISH_TICKRATE__ = 10
+__PUBLISH_TICK__ = 5
 
 rospy.init_node('rclient_ur',anonymous=True)
 joints=JointState()
@@ -84,7 +84,7 @@ class CustomPublisher:
   def clear_cache(self):
     self.cached_payloads = []
     
-pubs = Publishers(__PUBLISH_TICKRATE__)
+pubs = Publishers(__PUBLISH_TICK__)
 
 print("rclient_ur::",Config['robot_ip'])
 
@@ -119,14 +119,14 @@ while True:
       pycode=pycode+'pubs.set("' + obj["publish"] +'","' + obj["key"] + '", comm.state.' + obj['state'] + ')'
       continue
     
-    # lvar='comm.inregs.'+obj['input']
-    # exec(lvar+'=0')
-    # if 'param' in obj:
-    #   if len(pycode)>0: pycode=pycode+'\n'
-    #   pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
-    # elif 'state' in obj:
-    #   if len(pycode)>0: pycode=pycode+'\n'
-    #   pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
+    lvar='comm.inregs.'+obj['input']
+    exec(lvar+'=0')
+    if 'param' in obj:
+      if len(pycode)>0: pycode=pycode+'\n'
+      pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
+    elif 'state' in obj:
+      if len(pycode)>0: pycode=pycode+'\n'
+      pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
       
   if len(pycode)>0: pycode=pycode+'\n'      
   pycode=pycode+'pubs.next_tick()'
