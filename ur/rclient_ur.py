@@ -23,9 +23,9 @@ Config={
     {'param':'/dashboard/ind/rovi/stat','input':'input_bit_register_65'},
     {'param':'/dashboard/ind/diskfree/stat','input':'input_bit_register_66'},
     {'state':'payload_inertia[0]','input':'input_int_register_24','gain':10},
-    {'input': 'input_int_register_20', 'publish': '/report', 'key': 'CaptRowNo' },
-    {'input': 'input_int_register_21', 'publish': '/report', 'key': 'CaptColNo' },
-    {'input': 'input_int_register_22', 'publish': '/report', 'key': 'ReCaptNo' },
+    { 'state': 'input_int_register_20', 'publish': '/report', 'key': 'CaptRowNo' },
+    { 'state': 'input_int_register_21', 'publish': '/report', 'key': 'CaptColNo' },
+    { 'state': 'input_int_register_22', 'publish': '/report', 'key': 'ReCaptNo' },
   ],
 }
 
@@ -68,17 +68,19 @@ while True:
 ###Code generator##############
   pycode=''
   for obj in Config['copy']:
+    if 'publish' in obj:
+      if obj["publish"] == '/report':
+        if len(pycode)>0: pycode=pycode+'\n'
+        pycode=pycode+'=pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
+      else:
+        print(f"Not acceptable 'publish' key in the {0} object of Config.copy.".format(obj["key"]))
+      continue
+    
     lvar='comm.inregs.'+obj['input']
     exec(lvar+'=0')
     if 'param' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=rospy.get_param("'+obj['param']+'")'
-    elif 'publish' in obj:
-      if obj["publish"] == '/report':
-        if len(pycode)>0: pycode=pycode+'\n'
-        pycode=pycode+lvar+'=pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['input'] + '}))'
-      else:
-        print("Not acceptable 'publish' key in the CaptRowNo object of Config.copy.")
     elif 'state' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
