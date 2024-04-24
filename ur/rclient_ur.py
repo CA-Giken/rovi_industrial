@@ -39,7 +39,18 @@ except Exception as e:
 pub_js=rospy.Publisher('/joint_states',JointState,queue_size=1)
 pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
-pub_report=rospy.Publisher('/report', String, queue_size=1)
+
+# Dynamic Publishers
+class Publishers:
+  def get(self, endpoint):
+    alias = endpoint.replace("/", "_")
+    if self[alias]:
+      return self[alias]
+    else:
+      self[alias] = rospy.Publisher(endpoint, String, queue_size=1)
+      return self[alias]
+pubs = Publishers()
+
 print("rclient_ur::",Config['robot_ip'])
 
 mTrue=Bool();mTrue.data=True
@@ -69,11 +80,8 @@ while True:
   pycode=''
   for obj in Config['copy']:
     if 'publish' in obj:
-      if obj["publish"] == '/report':
-        if len(pycode)>0: pycode=pycode+'\n'
-        pycode=pycode+'pub_report.publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
-      else:
-        print(f"Not acceptable 'publish' key in the {0} object of Config.copy.".format(obj["key"]))
+      if len(pycode)>0: pycode=pycode+'\n'
+      pycode=pycode+'pubs.get(' + obj["publish"] +').publish(json.dumps({' + obj["key"] + ": comm.state." + obj['state'] + '}))'
       continue
     
     lvar='comm.inregs.'+obj['input']
