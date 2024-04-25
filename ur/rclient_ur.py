@@ -31,7 +31,6 @@ Config={
   ],
 }
 
-__PUBLISH_TICK__ = Config["publish_tick"]
 
 rospy.init_node('rclient_ur',anonymous=True)
 joints=JointState()
@@ -43,6 +42,8 @@ except Exception as e:
 pub_js=rospy.Publisher('/joint_states',JointState,queue_size=1)
 pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
+
+__PUBLISH_TICK__ = Config["publish_tick"]
 
 # Dynamic Publishers
 class Publishers:
