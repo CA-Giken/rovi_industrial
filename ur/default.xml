@@ -7,6 +7,9 @@
     <field name="actual_TCP_pose" type="VECTOR6D"/>
     <field name="payload_inertia" type="VECTOR6D"/>
     <field name="tcp_offset" type="VECTOR6D"/>
+    <field name="input_int_register_20" type="INT32"/>
+    <field name="input_int_register_21" type="INT32"/>
+    <field name="input_int_register_22" type="INT32"/>
   </recipe>
   <recipe key="input">
     <field name="input_bit_register_64" type="BOOL"/>

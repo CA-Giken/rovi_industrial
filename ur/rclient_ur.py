@@ -5,12 +5,13 @@ import roslib
 import rospy
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from rovi_industrial import rtde_sock as comm
 from rovi_utils import tflib
 from scipy.spatial.transform import Rotation as R
 import time
 import sys
+import json
 
 Config={
   'robot_ip':'127.0.0.1',
@@ -18,13 +19,18 @@ Config={
   'robot_recipe':'default.xml',
   'robot_port':30004,
   'tcp0_frame_id':'tool0_controller',
+  'publish_tick': 5,
   'copy':[
     {'param':'/dashboard/ind/rsocket/enable','input':'input_bit_register_64'},
     {'param':'/dashboard/ind/rovi/stat','input':'input_bit_register_65'},
     {'param':'/dashboard/ind/diskfree/stat','input':'input_bit_register_66'},
     {'state':'payload_inertia[0]','input':'input_int_register_24','gain':10},
+    { 'state': 'input_int_register_20', 'publish': '/report', 'key': 'CaptRowNo' },
+    { 'state': 'input_int_register_21', 'publish': '/report', 'key': 'CaptColNo' },
+    { 'state': 'input_int_register_22', 'publish': '/report', 'key': 'ReCaptNo' },
   ],
 }
+
 
 rospy.init_node('rclient_ur',anonymous=True)
 joints=JointState()
@@ -36,6 +42,52 @@ except Exception as e:
 pub_js=rospy.Publisher('/joint_states',JointState,queue_size=1)
 pub_tf=rospy.Publisher('/update/config_tf',TransformStamped,queue_size=1)
 pub_conn=rospy.Publisher('/rsocket/enable',Bool,queue_size=1)
+
+__PUBLISH_TICK__ = Config["publish_tick"]
+
+# Dynamic Publishers
+class Publishers:
+  def __init__(self, tick: int):
+    self.publishers = []
+    self.tick = tick
+  def set(self, endpoint, key, value):
+    pub = next(filter(lambda x: x.endpoint == endpoint, self.publishers), None)
+    if pub == None:
+      pub = self.create_endpoint(endpoint, self.tick)
+    pub.add_payload(key, value)
+  def create_endpoint(self, endpoint, tick):
+    pub = CustomPublisher(endpoint, tick)
+    self.publishers.append(pub)
+    return pub
+  def next_tick(self):
+    for pub in self.publishers:
+      pub.next_tick()
+    
+class CustomPublisher:
+  def __init__(self, endpoint: str, tick: int):
+    self.endpoint = endpoint
+    self.tick = tick
+    self.tick_count = 0
+    self.publisher = rospy.Publisher(endpoint, String, queue_size=1)
+    self.cached_payloads = []
+    self.payload = {}
+  def next_tick(self):
+    self.tick_count = self.tick_count + 1
+    if self.tick_count >= self.tick:
+      self.publisher.publish(json.dumps(self.payload))
+      self.tick_count = 0
+      self.clear_cache()
+    self.clear_payload()
+  def add_payload(self, key, value):
+    self.payload[key] = value
+  def clear_payload(self):
+    self.cached_payloads.append(self.payload)
+    self.payload = {}
+  def clear_cache(self):
+    self.cached_payloads = []
+    
+pubs = Publishers(__PUBLISH_TICK__)
+
 print("rclient_ur::",Config['robot_ip'])
 
 mTrue=Bool();mTrue.data=True
@@ -64,6 +116,11 @@ while True:
 ###Code generator##############
   pycode=''
   for obj in Config['copy']:
+    if 'publish' in obj:
+      if len(pycode)>0: pycode=pycode+'\n'
+      pycode=pycode+'pubs.set("' + obj["publish"] +'","' + obj["key"] + '", comm.state.' + obj['state'] + ')'
+      continue
+    
     lvar='comm.inregs.'+obj['input']
     exec(lvar+'=0')
     if 'param' in obj:
@@ -72,6 +129,10 @@ while True:
     elif 'state' in obj:
       if len(pycode)>0: pycode=pycode+'\n'
       pycode=pycode+lvar+'=int(comm.state.'+obj['state']+'*'+str(obj['gain'])+')'
+      
+  if len(pycode)>0: pycode=pycode+'\n'      
+  pycode=pycode+'pubs.next_tick()'
+  
   print('Code generator\n',pycode)
 ###Start Event Loop##############
   try:
