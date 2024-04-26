@@ -149,7 +149,6 @@ while True:
     try:
       comm.receive()
       update(comm.state.actual_q)
-      print("inreg",comm.state.input_int_register_20)
       if len(pycode)>0:
         try:
           exec(pycode)
