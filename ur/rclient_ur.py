@@ -104,6 +104,7 @@ while True:
   if rospy.is_shutdown(): sys.exit()
   rospy.sleep(3)
 
+  print("robot recipe",Config['robot_recipe'])
   if not comm.connect(Config['robot_ip'],Config['robot_port'],Config['robot_recipe'],uplink=True):
     print("rclient_ur::comm connect falied",Config['robot_ip'])
     continue
@@ -149,11 +150,11 @@ while True:
     try:
       comm.receive()
       update(comm.state.actual_q)
-      if len(pycode)>0:
-        try:
-          exec(pycode)
-        except Exception as e:
-          print("Exec error",e,file=sys.stderr)
+#      if len(pycode)>20:
+#        try:
+#          exec(pycode)
+#        except Exception as e:
+#          print("Exec error",e,file=sys.stderr)
       comm.send()
       if tcp0_id in conf_tf:
         tf=TransformStamped()

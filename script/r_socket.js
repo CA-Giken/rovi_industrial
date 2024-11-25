@@ -245,6 +245,9 @@ setImmediate(async function(){
         respNG(conn,protocol,913);
         return;
       }
+      if(Config.x1keys.length>0){  //init as magic number
+        Score[Config.x1keys[0]]=99999;
+      }
       let tfs;
       try{
         tfs=await protocol.decode(msg.substr(2).trim());
@@ -271,7 +274,9 @@ setImmediate(async function(){
         respNG(conn,protocol,911); //capture timeout
       },Config.capt_timeout*1000);
       emitter.removeAllListeners('capture');
-      emitter.once('capture',function(ret){
+      let x1retries=0;
+      let x1callback;
+      emitter.once('capture',x1callback=function(ret){
         clearTimeout(wdt);
         wdt=null;
         let t1=ros.Time.now();
@@ -281,6 +286,19 @@ setImmediate(async function(){
           else{
             if(Config.x1keys.length==0) respOK(conn,protocol);
             else{
+              if(Score[Config.x1keys[0]]==99999){  //Score never subscribed
+                x1retries++;
+                ros.log.info("rsocket::x1callback retry "+x1retries);
+                if(x1retries<3){
+                  setTimeout(function(){
+                    x1callback(ret);
+                  },300);
+                  return;
+                }
+                else{
+                  respNG(conn,protocol,914); //failed
+                }
+              }
               let vals=Config.x1keys.map((k)=>{
                 return Score.hasOwnProperty(k)? Score[k]:0;
                 });

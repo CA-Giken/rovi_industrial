@@ -1,0 +1,9 @@
+<launch>
+  <arg name="robot" default="kw" />
+  <node pkg="rovi_utils" type="tf_euler.py" name="" output="screen" />
+  <node pkg="rovi_utils" type="tf_lookup.py" name="" output="screen" />
+  <node pkg="rovi_industrial" type="r_socket.js" name="" output="screen">
+    <param name="/config/rsocket/protocol" type="str" value="$(arg robot)" />
+  </node>
+  <node pkg="rovi_industrial" type="ycam3.py" name="" />
+</launch>
